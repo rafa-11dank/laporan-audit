@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Ocean Superstore Dashboard</title>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:'Poppins',sans-serif;
+  background:#07131f;
+  color:white;
+  overflow-x:hidden;
+  transition:0.4s;
+}
+
+body.light{
+  background:#edf6ff;
+  color:#0f172a;
+}
+
+.sidebar{
+  position:fixed;
+  top:0;
+  left:0;
+  width:260px;
+  height:100vh;
+  padding:30px 20px;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(12px);
+  border-right:1px solid rgba(255,255,255,0.08);
+  z-index:100;
+}
+
+.logo{
+  margin-bottom:40px;
+}
+
+.logo h1{
+  font-size:24px;
+}
+
+.logo p{
+  margin-top:10px;
+  opacity:0.7;
+  line-height:1.7;
+  font-size:13px;
+}
+
+.menu{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.menu button{
+  border:none;
+  padding:14px 16px;
+  border-radius:16px;
+  background:rgba(255,255,255,0.06);
+  color:white;
+  font-family:'Poppins';
+  cursor:pointer;
+  transition:0.3s;
+  text-align:left;
+}
+
+body.light .menu button{
+  color:#0f172a;
+}
+
+.menu button:hover,
+.menu button.active{
+  background:#00b4d8;
+  transform:translateX(6px);
+}
+
+.modeBtn{
+  margin-top:35px;
+  width:100%;
+  border:none;
+  padding:14px;
+  border-radius:16px;
+  background:#4cc9f0;
+  color:#001219;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.main{
+  margin-left:260px;
+  padding:30px;
+}
+
+.section{
+  display:none;
+}
+
+.section.active{
+  display:block;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:20px;
+}
+
+.card{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.08);
+  backdrop-filter:blur(12px);
+  border-radius:24px;
+  padding:24px;
+  overflow:hidden;
+}
+
+body.light .card{
+  background:white;
+}
+
+.card h2{
+  margin-bottom:12px;
+}
+
+.featureTitle{
+  font-size:18px;
+  font-weight:600;
+  color:#72efdd;
+  margin-bottom:10px;
+}
+
+.featureDesc{
+  opacity:0.8;
+  line-height:1.8;
+  font-size:14px;
+  margin-bottom:25px;
+}
+
+.kpi{
+  grid-column:span 3;
+  height:180px;
+}
+
+.large{
+  grid-column:span 8;
+  height:430px;
+}
+
+.small{
+  grid-column:span 4;
+  height:430px;
+}
+
+.full{
+  grid-column:span 12;
+  min-height:500px;
+}
+
+.kpi-value{
+  font-size:38px;
+  font-weight:700;
+  margin-top:15px;
+}
+
+.kpi-desc{
+  opacity:0.7;
+  margin-top:10px;
+}
+
+.chartBox{
+  position:relative;
+  height:350px;
+  width:100%;
+}
+
+canvas{
+  width:100% !important;
+  height:100% !important;
+}
+
+.summary{
+  line-height:2;
+  opacity:0.9;
+  font-size:15px;
+}
+
+.tableWrap{
+  margin-top:30px;
+  overflow-x:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th,td{
+  padding:16px;
+  text-align:left;
+}
+
+th{
+  background:#101d35;
+  color:#72efdd;
+}
+
+tr{
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+
+.tooltipBox{
+  margin-top:15px;
+  padding:14px;
+  border-radius:14px;
+  background:rgba(255,255,255,0.06);
+  line-height:1.8;
+  font-size:14px;
+}
+
+@media(max-width:1200px){
+
+  .sidebar{
+    position:relative;
+    width:100%;
+    height:auto;
+  }
+
+  .main{
+    margin-left:0;
+  }
+
+  .kpi,
+  .large,
+  .small,
+  .full{
+    grid-column:span 12;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+
+  <div class="logo">
+
+    <h1>Superstore Dashboard</h1>
+
+    <p>
+      Ahmad Rafasyah Ramadhan<br>
+      NPM 23082010226
+    </p>
+
+  </div>
+
+  <div class="menu">
+
+    <button class="navBtn active" data-section="overview">
+      Overview
+    </button>
+
+    <button class="navBtn" data-section="trend">
+      Revenue Trend
+    </button>
+
+    <button class="navBtn" data-section="category">
+      Category Analysis
+    </button>
+
+    <button class="navBtn" data-section="quarter">
+      Quarter Analysis
+    </button>
+
+    <button class="navBtn" data-section="conclusion">
+      Kesimpulan
+    </button>
+
+  </div>
+
+  <button class="modeBtn" id="modeBtn">
+    Light / Dark
+  </button>
+
+</div>
+
+<div class="main">
+
+<!-- ================= OVERVIEW ================= -->
+
+<section class="section active" id="overview">
+
+<div class="card" style="margin-bottom:20px;">
+
+<div class="featureTitle">
+Overview Dashboard
+</div>
+
+<div class="featureDesc">
+Halaman Overview digunakan untuk menampilkan ringkasan performa bisnis Superstore secara cepat melalui indikator utama bisnis atau KPI (Key Performance Indicator). 
+Pengguna dapat melihat total revenue, total profit, jumlah transaksi, dan kategori produk terbaik sehingga mempermudah proses monitoring performa penjualan secara keseluruhan.
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="card kpi">
+<h2>Total Revenue</h2>
+<div class="kpi-value" id="totalRevenue">$0</div>
+<div class="kpi-desc">Total keseluruhan penjualan</div>
+</div>
+
+<div class="card kpi">
+<h2>Total Profit</h2>
+<div class="kpi-value" id="totalProfit">$0</div>
+<div class="kpi-desc">Akumulasi profit bisnis</div>
+</div>
+
+<div class="card kpi">
+<h2>Total Transactions</h2>
+<div class="kpi-value" id="totalOrders">0</div>
+<div class="kpi-desc">Jumlah transaksi penjualan</div>
+</div>
+
+<div class="card kpi">
+<h2>Top Category</h2>
+<div class="kpi-value" id="topCategory">-</div>
+<div class="kpi-desc">Kategori dengan revenue tertinggi</div>
+</div>
+
+</div>
+
+<div class="grid" style="margin-top:20px;">
+
+  <div class="card large">
+    <h2>Revenue vs Profit Comparison</h2>
+    <div class="chartBox">
+      <canvas id="revenueProfitChart">-</canvas>
+    </div>
+    <div class="tooltipBox">
+      Grafik ini membandingkan revenue dan profit tiap kategori untuk melihat kategori yang paling kuat secara penjualan maupun keuntungan.
+    </div>
+  </div>
+
+  <div class="card small">
+    <h2>Profit Margin (%)</h2>
+    <div class="chartBox">
+      <canvas id="marginChart"></canvas>
+    </div>
+    <div class="tooltipBox">
+      Menunjukkan tingkat efisiensi keuntungan tiap kategori berdasarkan persentase profit terhadap revenue.
+    </div>
+  </div>
+
+</div>
+
+</section>
+
+<!-- ================= TREND ================= -->
+
+<section class="section" id="trend">
+
+<div class="card" style="margin-bottom:20px;">
+
+<div class="featureTitle">
+Revenue Trend Analysis
+</div>
+
+<div class="featureDesc">
+Fitur Revenue Trend digunakan untuk menganalisis perubahan revenue berdasarkan periode waktu tertentu. 
+Visualisasi line chart membantu pengguna melihat pola kenaikan maupun penurunan revenue baik berdasarkan tahun maupun rata-rata bulanan. 
+Fitur ini dapat membantu perusahaan dalam mengevaluasi performa penjualan serta memprediksi tren bisnis di masa mendatang.
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="card full">
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+
+<h2>Revenue Trend</h2>
+
+<select id="trendFilter">
+<option value="year">By Year</option>
+<option value="month">Average Monthly</option>
+</select>
+
+</div>
+
+<div class="chartBox">
+<canvas id="trendChart"></canvas>
+</div>
+
+<div class="tooltipBox">
+Grafik Revenue Trend menampilkan perubahan revenue berdasarkan tahun dan rata-rata bulan. Tampilan By Year digunakan untuk melihat pertumbuhan bisnis tiap tahun, sedangkan Average Monthly membantu melihat pola penjualan yang paling tinggi maupun rendah pada setiap bulan.
+</div>
+
+<div class="tooltipBox" id="trendInfo">
+Arahkan kursor pada chart untuk melihat detail revenue.
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ================= CATEGORY ================= -->
+
+<section class="section" id="category">
+
+<div class="card" style="margin-bottom:20px;">
+
+<div class="featureTitle">
+Category Analysis
+</div>
+
+<div class="featureDesc">
+Halaman Category Analysis digunakan untuk membandingkan performa setiap kategori produk berdasarkan sales dan profit. 
+Bar chart digunakan untuk menampilkan total penjualan setiap kategori, sedangkan doughnut chart digunakan untuk memperlihatkan distribusi profit masing-masing kategori. 
+Analisis ini membantu perusahaan mengetahui kategori produk yang paling menguntungkan dan kategori yang perlu ditingkatkan performanya.
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="card large">
+
+<h2>Sales by Category</h2>
+
+<div class="chartBox">
+<canvas id="categoryChart"></canvas>
+</div>
+
+<div class="tooltipBox">
+Grafik Sales by Category menunjukkan total penjualan pada setiap kategori produk sehingga dapat diketahui kategori dengan kontribusi revenue terbesar terhadap bisnis.
+</div>
+
+</div>
+
+<div class="card small">
+
+<h2>Profit by Category</h2>
+
+<div class="chartBox">
+<canvas id="profitChart"></canvas>
+</div>
+
+<div class="tooltipBox">
+Grafik Profit by Category memperlihatkan distribusi profit dari setiap kategori produk sehingga membantu mengetahui kategori yang memberikan keuntungan paling besar.
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ================= QUARTER ================= -->
+
+<section class="section" id="quarter">
+
+<div class="card" style="margin-bottom:20px;">
+
+<div class="featureTitle">
+Quarter Analysis
+</div>
+
+<div class="featureDesc">
+Quarter Analysis digunakan untuk mengevaluasi performa bisnis berdasarkan periode kuartal. 
+Fitur ini menampilkan revenue setiap quarter, perbandingan revenue antar region, serta performa kategori produk pada setiap quarter. 
+Selain visualisasi chart, tersedia juga tabel detail yang berisi revenue, jumlah order, rata-rata penjualan, customer aktif, dan pertumbuhan penjualan untuk membantu proses analisis bisnis secara lebih mendalam.
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="card full">
+
+<h2>Quarter Performance</h2>
+
+<div class="chartBox">
+<canvas id="quarterChart"></canvas>
+</div>
+
+<div class="tooltipBox">
+Grafik Quarter Performance digunakan untuk membandingkan revenue pada setiap quarter sehingga dapat terlihat periode dengan performa penjualan tertinggi maupun terendah.
+</div>
+
+<div class="tableWrap">
+
+<table>
+
+<thead>
+<tr>
+<th>QUARTER</th>
+<th>REVENUE</th>
+<th>ORDER</th>
+<th>AVG ORDER</th>
+<th>CUSTOMER ACTIVE</th>
+<th>GROWTH</th>
+</tr>
+</thead>
+
+<tbody id="quarterTable"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<div class="card full">
+
+<h2>Quarter by Region</h2>
+
+<div class="chartBox">
+<canvas id="regionQuarterChart"></canvas>
+</div>
+
+<div class="tooltipBox">
+Grafik Quarter by Region menunjukkan perbandingan revenue antar wilayah pada setiap quarter sehingga membantu menganalisis region dengan kontribusi penjualan terbesar.
+</div>
+
+<div class="tableWrap">
+
+<table>
+
+<thead>
+<tr>
+<th>REGION</th>
+<th>TOTAL REVENUE</th>
+<th>TOTAL ORDER</th>
+<th>AVG SALES</th>
+</tr>
+</thead>
+
+<tbody id="regionTable"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<div class="card full">
+
+<h2>Quarter by Category</h2>
+
+<div class="chartBox">
+<canvas id="categoryQuarterChart"></canvas>
+</div>
+
+<div class="tooltipBox">
+Grafik Quarter by Category menampilkan performa penjualan kategori produk pada setiap quarter sehingga dapat diketahui kategori yang paling konsisten menghasilkan revenue.
+</div>
+
+<div class="tableWrap">
+
+<table>
+
+<thead>
+<tr>
+<th>CATEGORY</th>
+<th>TOTAL SALES</th>
+<th>TOTAL PROFIT</th>
+<th>TOTAL ORDER</th>
+</tr>
+</thead>
+
+<tbody id="categoryQuarterTable"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- CONCLUSION -->
+
+<section class="section" id="conclusion">
+
+<div class="card">
+
+<h2>Kesimpulan Analisis</h2>
+
+<div class="summary" id="summaryText">
+Loading conclusion...
+</div>
+
+</div>
+
+</section>
+
+</div>
+
+<script>
+
+// ======================
+// NAVIGATION
+// ======================
+
+const navBtns = document.querySelectorAll(".navBtn");
+const sections = document.querySelectorAll(".section");
+
+navBtns.forEach(btn=>{
+
+btn.addEventListener("click",()=>{
+
+navBtns.forEach(b=>{
+b.classList.remove("active");
+});
+
+btn.classList.add("active");
+
+sections.forEach(sec=>{
+sec.classList.remove("active");
+});
+
+document
+.getElementById(btn.dataset.section)
+.classList.add("active");
+
+});
+
+});
+
+// ======================
+// LIGHT DARK
+// ======================
+
+document
+.getElementById("modeBtn")
+.addEventListener("click",()=>{
+
+document.body.classList.toggle("light");
+
+});
+
+// ======================
+// FIX NUMBER FORMAT
+// ======================
+
+function parseNumber(value){
+
+if(value === null || value === undefined){
+return 0;
+}
+
+return parseFloat(
+String(value)
+.replace(/\./g,"")
+.replace(",",".")
+.replace(/[^0-9.-]/g,"")
+) || 0;
+
+}
+
+// ======================
+// LOAD DATA
+// ======================
+
+d3.json("data.json").then(data=>{
+
+// KPI
+
+const totalRevenue =
+d3.sum(data,d=>parseNumber(d.Sales));
+
+const totalProfit =
+d3.sum(data,d=>parseNumber(d.Profit));
+
+const totalOrders =
+data.length;
+
+document.getElementById("totalRevenue")
+.innerHTML =
+"$"+d3.format(",.0f")(totalRevenue);
+
+document.getElementById("totalProfit")
+.innerHTML =
+"$"+d3.format(",.0f")(totalProfit);
+
+document.getElementById("totalOrders")
+.innerHTML =
+totalOrders;
+
+// CATEGORY
+
+const categorySales = d3.rollup(
+data,
+v=>d3.sum(v,d=>parseNumber(d.Sales)),
+d=>d.Category
+);
+
+const categoryProfit = d3.rollup(
+data,
+v=>d3.sum(v,d=>parseNumber(d.Profit)),
+d=>d.Category
+);
+
+const topCategory =
+[...categorySales.entries()]
+.sort((a,b)=>b[1]-a[1])[0][0];
+
+document.getElementById("topCategory")
+.innerHTML = topCategory;
+
+// ======================
+// OVERVIEW EXTRA CHART
+// ======================
+
+const categoriesOverview = [...categorySales.keys()];
+
+const revenueData = categoriesOverview.map(c =>
+categorySales.get(c) || 0
+);
+
+const profitData = categoriesOverview.map(c =>
+categoryProfit.get(c) || 0
+);
+
+// Revenue vs Profit
+new Chart(document.getElementById("revenueProfitChart"), {
+type: "bar",
+data: {
+labels: categoriesOverview,
+datasets: [
+{
+label: "Revenue",
+data: revenueData,
+backgroundColor: "#4cc9f0"
+},
+{
+label: "Profit",
+data: profitData,
+backgroundColor: "#72efdd"
+}
+]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: {
+legend: { position: "top" }
+}
+}
+});
+
+// Profit Margin
+new Chart(document.getElementById("marginChart"), {
+type: "doughnut",
+data: {
+labels: categoriesOverview,
+datasets: [{
+data: categoriesOverview.map(c => {
+const rev = categorySales.get(c) || 0;
+const prof = categoryProfit.get(c) || 0;
+return rev ? (prof / rev * 100).toFixed(1) : 0;
+}),
+backgroundColor: ["#4cc9f0","#72efdd","#4361ee"]
+}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: {
+legend: { position: "bottom" }
+}
+}
+});
+
+// ======================
+// TREND CHART
+// ======================
+
+const trendCanvas =
+document.getElementById("trendChart");
+
+let trendChart;
+
+function renderTrend(type){
+
+let grouped;
+
+if(type === "year"){
+
+grouped = new Map(
+[...d3.rollup(
+data,
+v=>d3.sum(v,d=>parseNumber(d.Sales)),
+d=>d.Tahun
+).entries()].sort((a,b)=>a[0]-b[0])
+);
+
+}else{
+
+const monthData = d3.rollup(
+data,
+v=>d3.sum(v,d=>parseNumber(d.Sales)),
+d=>d.Bulan
+);
+
+grouped = new Map(
+[...monthData.entries()]
+.sort((a,b)=>{
+
+if(!isNaN(a[0]) && !isNaN(b[0])){
+return +a[0] - +b[0];
+}
+
+return String(a[0]).localeCompare(String(b[0]));
+
+})
+);
+
+}
+
+if(trendChart){
+trendChart.destroy();
+}
+
+trendChart = new Chart(trendCanvas,{
+
+type:"line",
+
+data:{
+
+labels:[...grouped.keys()],
+
+datasets:[{
+
+label:"Revenue",
+
+data:[...grouped.values()],
+
+borderColor:"#4cc9f0",
+
+backgroundColor:"rgba(76,201,240,0.2)",
+
+fill:true,
+
+tension:0.4,
+
+pointRadius:6,
+pointHoverRadius:8
+
+}]
+
+},
+
+options:{
+
+responsive:true,
+maintainAspectRatio:false,
+
+plugins:{
+legend:{
+display:false
+}
+},
+
+interaction:{
+mode:'index',
+intersect:false
+},
+
+onHover:(event,elements)=>{
+
+if(elements.length){
+
+const index = elements[0].index;
+const label = trendChart.data.labels[index];
+const value = trendChart.data.datasets[0].data[index];
+
+document.getElementById("trendInfo").innerHTML = `
+<b>${label}</b><br>
+Revenue: <b>$${d3.format(",.0f")(value)}</b>
+`;
+
+}
+
+},
+
+scales:{
+y:{
+beginAtZero:true
+}
+}
+
+}
+
+});
+
+}
+
+renderTrend("year");
+
+document
+.getElementById("trendFilter")
+.addEventListener("change",function(){
+
+renderTrend(this.value);
+
+});
+
+// CATEGORY CHART
+
+new Chart(
+document.getElementById("categoryChart"),
+{
+type:"bar",
+
+data:{
+labels:[...categorySales.keys()],
+
+datasets:[{
+
+label:"Sales",
+
+data:[...categorySales.values()],
+
+backgroundColor:[
+"#4cc9f0",
+"#72efdd",
+"#4361ee"
+],
+
+borderRadius:12
+
+}]
+},
+
+options:{
+responsive:true,
+maintainAspectRatio:false,
+
+plugins:{
+legend:{
+display:false
+}
+},
+
+scales:{
+y:{
+beginAtZero:true
+}
+}
+
+}
+
+}
+);
+
+// PROFIT CHART
+
+new Chart(
+document.getElementById("profitChart"),
+{
+type:"doughnut",
+
+data:{
+labels:[...categoryProfit.keys()],
+
+datasets:[{
+
+data:[...categoryProfit.values()],
+
+backgroundColor:[
+"#4cc9f0",
+"#72efdd",
+"#4361ee"
+]
+
+}]
+},
+
+options:{
+responsive:true,
+maintainAspectRatio:false,
+
+plugins:{
+legend:{
+position:'bottom'
+}
+}
+
+}
+
+}
+);
+
+// QUARTER CHART
+
+const quartalSales = d3.rollup(
+data,
+v=>d3.sum(v,d=>parseNumber(d.Sales)),
+d=>d.Quartal
+);
+
+const quarters = ["Q1","Q2","Q3","Q4"];
+
+new Chart(
+document.getElementById("quarterChart"),
+{
+type:"bar",
+
+data:{
+
+labels:quarters,
+
+datasets:[{
+
+label:"Revenue",
+
+data:quarters.map(q=>
+quartalSales.get(q) || 0
+),
+
+backgroundColor:[
+"#00b4d8",
+"#4361ee",
+"#72efdd",
+"#90e0ef"
+],
+
+borderRadius:12
+
+}]
+
+},
+
+options:{
+
+indexAxis:'y',
+
+responsive:true,
+maintainAspectRatio:false,
+
+plugins:{
+legend:{
+display:false
+}
+},
+
+scales:{
+x:{
+beginAtZero:true
+}
+}
+
+}
+
+}
+);
+
+// QUARTER TABLE
+
+const quarterTable =
+document.getElementById("quarterTable");
+
+let previous = null;
+
+quarters.forEach(q=>{
+
+const revenue =
+quartalSales.get(q) || 0;
+
+const quarterData =
+data.filter(d=>d.Quartal===q);
+
+const orders =
+quarterData.length;
+
+const avg = d3.mean(
+quarterData,
+d => parseNumber(d.Sales)
+) || 0;
+
+const customers =
+new Set(
+quarterData.map(d=>d["Customer Name"])
+).size;
+
+let growth = "Baseline";
+
+if(previous){
+
+growth =
+(((revenue-previous)/previous)*100)
+.toFixed(1)+"%";
+
+}
+
+previous = revenue;
+
+quarterTable.innerHTML += `
+
+<tr>
+
+<td>${q}</td>
+
+<td>$${d3.format(",.0f")(revenue)}</td>
+
+<td>${orders}</td>
+
+<td>$${d3.format(",.2f")(avg)}</td>
+
+<td>${customers}</td>
+
+<td>${growth}</td>
+
+</tr>
+
+`;
+
+});
+
+// REGION ANALYSIS
+
+const regions =
+[...new Set(data.map(d=>d.Region))];
+
+const regionColors = [
+"#4cc9f0",
+"#72efdd",
+"#4361ee",
+"#90e0ef"
+];
+
+const regionDatasets = regions.map((region,index)=>{
+
+return{
+
+label:region,
+
+data:quarters.map(q=>
+
+d3.sum(
+data.filter(d=>
+d.Region===region &&
+d.Quartal===q
+),
+d=>parseNumber(d.Sales)
+)
+
+),
+
+backgroundColor:regionColors[index],
+borderRadius:8
+
+};
+
+});
+
+new Chart(
+document.getElementById("regionQuarterChart"),
+{
+type:"bar",
+
+data:{
+labels:quarters,
+datasets:regionDatasets
+},
+
+options:{
+responsive:true,
+maintainAspectRatio:false,
+
+plugins:{
+legend:{
+display:true,
+position:'top'
+}
+},
+
+scales:{
+y:{
+beginAtZero:true
+}
+}
+
+}
+
+}
+);
+
+// REGION TABLE
+
+const regionSales = d3.rollup(
+data,
+v=>d3.sum(v,d=>parseNumber(d.Sales)),
+d=>d.Region
+);
+
+const regionTable =
+document.getElementById("regionTable");
+
+regions.forEach(region=>{
+
+const regionData =
+data.filter(d=>d.Region===region);
+
+const revenue =
+d3.sum(regionData,
+d=>parseNumber(d.Sales)
+);
+
+const orders =
+regionData.length;
+
+const avgSales =
+d3.mean(regionData,
+d=>parseNumber(d.Sales)
+) || 0;
+
+regionTable.innerHTML += `
+
+<tr>
+
+<td>${region}</td>
+
+<td>$${d3.format(",.0f")(revenue)}</td>
+
+<td>${orders}</td>
+
+<td>$${d3.format(",.2f")(avgSales)}</td>
+
+</tr>
+
+`;
+
+});
+
+// CATEGORY QUARTER
+
+const categories =
+[...new Set(data.map(d=>d.Category))];
+
+const datasetsCategory =
+categories.map((cat,index)=>{
+
+const colors = [
+"#4cc9f0",
+"#72efdd",
+"#4361ee"
+];
+
+return {
+
+label:cat,
+
+data:quarters.map(q=>
+d3.sum(
+data.filter(d=>
+d.Category===cat &&
+d.Quartal===q
+),
+d=>parseNumber(d.Sales)
+)
+),
+
+backgroundColor:colors[index],
+borderRadius:8
+
+};
+
+});
+
+new Chart(
+document.getElementById("categoryQuarterChart"),
+{
+type:"bar",
+
+data:{
+labels:quarters,
+datasets:datasetsCategory
+},
+
+options:{
+responsive:true,
+maintainAspectRatio:false,
+
+plugins:{
+legend:{
+display:true,
+position:'top'
+},
+tooltip:{
+enabled:true
+}
+},
+
+scales:{
+y:{
+beginAtZero:true
+}
+}
+
+}
+
+}
+);
+
+// CATEGORY TABLE
+
+const categoryQuarterTable =
+document.getElementById("categoryQuarterTable");
+
+categories.forEach(cat=>{
+
+const catData =
+data.filter(d=>d.Category===cat);
+
+const sales =
+d3.sum(catData,d=>parseNumber(d.Sales));
+
+const profit =
+d3.sum(catData,d=>parseNumber(d.Profit));
+
+const orders =
+catData.length;
+
+categoryQuarterTable.innerHTML += `
+
+<tr>
+
+<td>${cat}</td>
+
+<td>$${d3.format(",.0f")(sales)}</td>
+
+<td>$${d3.format(",.0f")(profit)}</td>
+
+<td>${orders}</td>
+
+</tr>
+
+`;
+
+});
+
+// CONCLUSION
+
+const highestCategory =
+[...categorySales.entries()]
+.sort((a,b)=>b[1]-a[1])[0];
+
+const lowestCategory =
+[...categorySales.entries()]
+.sort((a,b)=>a[1]-b[1])[0];
+
+const bestQuarter =
+[...quartalSales.entries()]
+.sort((a,b)=>b[1]-a[1])[0];
+
+const bestRegion =
+[...regionSales.entries()]
+.sort((a,b)=>b[1]-a[1])[0];
+
+document.getElementById("summaryText")
+.innerHTML = `
+
+Dashboard Superstore menunjukkan bahwa
+kategori <b>${highestCategory[0]}</b>
+menjadi kategori dengan revenue tertinggi sebesar
+<b>$${d3.format(",.0f")(highestCategory[1])}</b>.
+
+<br><br>
+
+Sedangkan kategori
+<b>${lowestCategory[0]}</b>
+menjadi kategori dengan performa penjualan terendah.
+
+<br><br>
+
+Pada analisis quarter,
+<b>${bestQuarter[0]}</b>
+menjadi periode dengan revenue paling tinggi.
+
+<br><br>
+
+Berdasarkan analisis region,
+wilayah <b>${bestRegion[0]}</b>
+memberikan kontribusi penjualan terbesar terhadap bisnis.
+
+<br><br>
+
+Visualisasi Revenue Trend memperlihatkan perubahan performa penjualan
+baik berdasarkan tahun maupun bulan sehingga mempermudah proses monitoring bisnis.
+
+<br><br>
+
+Analisis Category membantu perusahaan mengetahui kategori produk
+yang menghasilkan sales dan profit tertinggi,
+sedangkan Quarter Analysis membantu mengevaluasi performa bisnis
+berdasarkan periode waktu tertentu.
+
+<br><br>
+
+Dashboard ini dapat digunakan sebagai alat business intelligence
+untuk monitoring performa penjualan,
+evaluasi strategi bisnis,
+analisis wilayah penjualan,
+serta mendukung pengambilan keputusan berbasis data.
+
+`;
+
+})
+
+// ERROR HANDLING
+
+.catch(error=>{
+
+console.error(error);
+
+alert("Gagal memuat data.json");
+
+});
+
+
+</script>
+
+</body>
+</html>
